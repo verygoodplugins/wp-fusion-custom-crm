@@ -9,7 +9,7 @@ class WPF_Custom {
 	 * @since 1.0.0
 	 */
 
-	public $url;
+	public $url = 'https://myapi.com';
 
 	/**
 	 * Declares how this CRM handles tags and fields.
