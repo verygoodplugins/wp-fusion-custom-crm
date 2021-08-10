@@ -30,11 +30,10 @@ class WPF_Custom_Admin {
 	private $crm;
 
 	/**
-	 * Get things started
+	 * Get things started.
 	 *
 	 * @since 1.0.0
 	 */
-
 	public function __construct( $slug, $name, $crm ) {
 
 		$this->slug = $slug;
@@ -44,10 +43,10 @@ class WPF_Custom_Admin {
 		add_filter( 'wpf_configure_settings', array( $this, 'register_connection_settings' ), 15, 2 );
 		add_action( 'show_field_custom_header_begin', array( $this, 'show_field_custom_header_begin' ), 10, 2 );
 
-		// AJAX callback to test the connection
+		// AJAX callback to test the connection.
 		add_action( 'wp_ajax_wpf_test_connection_' . $this->slug, array( $this, 'test_connection' ) );
 
-		if ( wp_fusion()->settings->get( 'crm' ) == $this->slug ) {
+		if ( wp_fusion()->settings->get( 'crm' ) === $this->slug ) {
 			$this->init();
 		}
 
@@ -58,10 +57,9 @@ class WPF_Custom_Admin {
 	 *
 	 * @since 1.0.0
 	 */
-
 	public function init() {
 
-		// Hooks in init() will run on the admin screen when this CRM is active
+		// Hooks in init() will run on the admin screen when this CRM is active.
 	}
 
 
@@ -74,7 +72,6 @@ class WPF_Custom_Admin {
 	 * @param array $options  The options saved in the database.
 	 * @return array $settings The settings.
 	 */
-
 	public function register_connection_settings( $settings, $options ) {
 
 		$new_settings = array();
@@ -117,12 +114,11 @@ class WPF_Custom_Admin {
 	 * @param array  $field The field properties.
 	 * @return mixed HTML output.
 	 */
-
 	public function show_field_custom_header_begin( $id, $field ) {
 
 		echo '</table>';
 		$crm = wp_fusion()->settings->get( 'crm' );
-		echo '<div id="' . $this->slug . '" class="crm-config ' . ( $crm == false || $crm != $this->slug ? 'hidden' : 'crm-active' ) . '" data-name="' . $this->name . '" data-crm="' . $this->slug . '">';
+		echo '<div id="' . esc_attr( $this->slug ) . '" class="crm-config ' . ( $crm === false || $crm !== $this->slug ? 'hidden' : 'crm-active' ) . '" data-name="' . esc_attr( $this->name ) . '" data-crm="' . esc_attr( $this->slug ) . '">';
 
 	}
 
@@ -134,7 +130,6 @@ class WPF_Custom_Admin {
 	 *
 	 * @return mixed JSON response.
 	 */
-
 	public function test_connection() {
 
 		$api_url = esc_url( $_POST['custom_url'] );
@@ -144,14 +139,12 @@ class WPF_Custom_Admin {
 
 		if ( is_wp_error( $connection ) ) {
 
-			// Connection failed
-
+			// Connection failed.
 			wp_send_json_error( $connection->get_error_message() );
 
 		} else {
 
-			// Save the API credentials
-
+			// Save the API credentials.
 			$options                          = wp_fusion()->settings->get_all();
 			$options['custom_url']            = $api_url;
 			$options['custom_key']            = $api_key;
