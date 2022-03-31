@@ -18,6 +18,10 @@ Upload to your /wp-content/plugins/ directory
 
 ## Changelog
 
+### 1.0.4 - 3/31/2022
+* Added example showing OAuth authorization fields and handling in admin class
+* Added `set_default_fields()` function in admin class
+
 ### 1.0.3 - 8/10/2021
 * Added example edit_url
 * Added example `format_field_value()`
