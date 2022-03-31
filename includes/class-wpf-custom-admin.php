@@ -60,6 +60,81 @@ class WPF_Custom_Admin {
 	public function init() {
 
 		// Hooks in init() will run on the admin screen when this CRM is active.
+
+		add_filter( 'wpf_initialize_options_contact_fields', array( $this, 'add_default_fields' ), 10 );
+
+	}
+
+
+	/**
+	 * Gets the OAuth URL for the initial connection. Remove if not using OAuth.
+	 *
+	 * If we're using the WP Fusion app, send the request through wpfusion.com,
+	 * otherwise allow a custom app.
+	 *
+	 * @since  1.0.4
+	 *
+	 * @return string The URL.
+	 */
+	public function get_oauth_url() {
+
+		$admin_url = str_replace( 'http://', 'https://', get_admin_url() ); // must be HTTPS for the redirect to work.
+
+		$args = array(
+			'redirect' => rawurlencode( $admin_url . 'options-general.php?page=wpf-settings' ),
+			'action'   => "wpf_get_{$this->slug}_token",
+		);
+
+		return apply_filters( "wpf_{$this->slug}_auth_url", add_query_arg( $args, 'https://wpfusion.com/oauth/' ) );
+
+	}
+
+	/**
+	 * Listen for an OAuth response and maybe complete setup. Remove if not using OAuth.
+	 *
+	 * @since 1.0.4
+	 */
+	public function maybe_oauth_complete() {
+
+		if ( isset( $_GET['code'] ) && isset( $_GET['crm'] ) && $_GET['crm'] === $this->slug ) {
+
+			$code = sanitize_text_field( wp_unslash( $_GET['code'] ) );
+
+			$body = array(
+				'grant_type'    => 'authorization_code',
+				'code'          => $code,
+				'client_id'     => $this->crm->client_id,
+				'client_secret' => $this->crm->client_secret,
+				'redirect_uri'  => "https://wpfusion.com/oauth/?action=wpf_get_{$this->slug}_token",
+			);
+
+			$params = array(
+				'timeout'    => 30,
+				'user-agent' => 'WP Fusion; ' . home_url(),
+				'body'       => wp_json_encode( $body ),
+				'headers'    => array(
+					'Content-Type' => 'application/json',
+					'Accept'       => 'application/json',
+				),
+			);
+
+			$response = wp_safe_remote_post( $this->crm->auth_url, $params );
+
+			if ( is_wp_error( $response ) ) {
+				return false;
+			}
+
+			$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+			wp_fusion()->settings->set( "{$this->slug}_refresh_token", $response->refresh_token );
+			wp_fusion()->settings->set( "{$this->slug}_token", $response->access_token );
+			wp_fusion()->settings->set( 'crm', $this->slug );
+
+			wp_safe_redirect( admin_url( 'options-general.php?page=wpf-settings#setup' ) );
+			exit;
+
+		}
+
 	}
 
 
@@ -82,6 +157,8 @@ class WPF_Custom_Admin {
 			'section' => 'setup',
 		);
 
+		// Option 1, API URL + API key based authentication.
+
 		$new_settings['custom_url'] = array(
 			'title'   => __( 'URL', 'wp-fusion' ),
 			'desc'    => __( 'URL to your custom CRM', 'wp-fusion' ),
@@ -98,9 +175,65 @@ class WPF_Custom_Admin {
 			'post_fields' => array( 'custom_url', 'custom_key' ), // This tells us which settings fields need to be POSTed when the Test Connection button is clicked.
 		);
 
+		// OR, Option 2, OAuth based authentication. Remove if not using OAuth.
+
+		if ( empty( $options[ "{$this->slug}_refresh_token" ] ) && ! isset( $_GET['code'] ) ) {
+
+			$new_settings[ "{$this->slug}_auth" ] = array(
+				'title'   => __( 'Authorize', 'wp-fusion' ),
+				'type'    => 'oauth_authorize',
+				'section' => 'setup',
+				'url'     => $this->get_oauth_url(),
+				'name'    => $this->name,
+				'slug'    => $this->slug,
+			);
+
+		} else {
+
+			$new_settings[ "{$this->slug}_token" ] = array(
+				'title'   => __( 'Access Token', 'wp-fusion' ),
+				'type'    => 'text',
+				'section' => 'setup',
+			);
+
+			$new_settings[ "{$this->slug}_refresh_token" ] = array(
+				'title'       => __( 'Refresh token', 'wp-fusion' ),
+				'type'        => 'api_validate',
+				'section'     => 'setup',
+				'class'       => 'api_key',
+				'post_fields' => array( "{$this->slug}_token", "{$this->slug}_refresh_token" ),
+				'desc'        => '<a href="' . esc_url( $this->get_oauth_url() ) . '">' . sprintf( esc_html__( 'Re-authorize with %s', 'wp-fusion' ), $this->crm->name ) . '</a>. ',
+			);
+
+		}
+
 		$settings = wp_fusion()->settings->insert_setting_after( 'crm', $settings, $new_settings );
 
 		return $settings;
+
+	}
+
+	/**
+	 * Loads standard CRM field names and attempts to match them up with
+	 * standard local ones.
+	 *
+	 * @since  1.0.4
+	 *
+	 * @param  array $options The options.
+	 * @return array The options.
+	 */
+	public function add_default_fields( $options ) {
+
+		$standard_fields = $this->crm->get_default_fields();
+
+		foreach ( $options['contact_fields'] as $field => $data ) {
+
+			if ( isset( $standard_fields[ $field ] ) && empty( $options['contact_fields'][ $field ]['crm_field'] ) ) {
+				$options['contact_fields'][ $field ] = array_merge( $options['contact_fields'][ $field ], $standard_fields[ $field ] );
+			}
+		}
+
+		return $options;
 
 	}
 

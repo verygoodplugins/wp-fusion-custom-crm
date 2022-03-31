@@ -42,6 +42,31 @@ class WPF_Custom {
 	 */
 	public $edit_url = '';
 
+
+	/**
+	 * Client ID for OAuth (if applicable).
+	 *
+	 * @var string
+	 * @since 1.0.4
+	 */
+	public $client_id = '959bd865-5a24-4a43-a8bf-05a69c537938';
+
+	/**
+	 * Client secret for OAuth (if applicable).
+	 *
+	 * @var string
+	 * @since 1.0.4
+	 */
+	public $client_secret = '56cc5735-c274-4e43-99d4-3660d816a624';
+
+	/**
+	 * Authorization URL for OAuth (if applicable).
+	 *
+	 * @var string
+	 * @since 1.0.4
+	 */
+	public $auth_url = 'https://mycrm.com/oauth/authorize';
+
 	/**
 	 * Get things started
 	 *
@@ -149,6 +174,85 @@ class WPF_Custom {
 		return $this->params;
 	}
 
+	/**
+	 * Refresh an access token from a refresh token. Remove if not using OAuth.
+	 *
+	 * @since  1.0.4
+	 *
+	 * @return string An access token.
+	 */
+	public function refresh_token() {
+
+		$refresh_token = wpf_get_option( "{$this->slug}_refresh_token" );
+
+		$params = array(
+			'user-agent' => 'WP Fusion; ' . home_url(),
+			'headers'    => array(
+				'Content-Type' => 'application/x-www-form-urlencoded',
+			),
+			'body'       => array(
+				'grant_type'    => 'refresh_token',
+				'client_id'     => $this->client_id,
+				'client_secret' => $this->client_secret,
+				'redirect_uri'  => "https://wpfusion.com/oauth/?action=wpf_get_{$this->slug}_token",
+				'refresh_token' => $refresh_token,
+			),
+		);
+
+		$response = wp_safe_remote_post( $this->auth_url, $params );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$body_json = json_decode( wp_remote_retrieve_body( $response ) );
+
+		$this->get_params( $body_json->access_token );
+
+		wp_fusion()->settings->set( "{$this->slug}_token", $body_json->access_token );
+
+		return $body_json->access_token;
+
+	}
+
+	/**
+	 * Gets the default fields.
+	 *
+	 * @since  1.0.4
+	 *
+	 * @return array The default fields in the CRM.
+	 */
+	public static function get_default_fields() {
+
+		return array(
+			'first_name'     => array(
+				'crm_label' => 'First Name',
+				'crm_field' => 'f_name',
+			),
+			'last_name'      => array(
+				'crm_label' => 'Last Name',
+				'crm_field' => 'l_name',
+			),
+			'user_email'     => array(
+				'crm_label' => 'Email',
+				'crm_field' => 'email',
+			),
+			'billing_phone'  => array(
+				'crm_label' => 'Phone',
+				'crm_field' => 'contact_no',
+			),
+			'billing_state'  => array(
+				'crm_label' => 'State',
+				'crm_field' => 'state',
+			),
+			'billing_counry' => array(
+				'crm_label' => 'Country',
+				'crm_field' => 'country',
+			),
+		);
+
+	}
+
 
 	/**
 	 * Check HTTP Response for errors and return WP_Error if found.
@@ -167,7 +271,23 @@ class WPF_Custom {
 			$body_json     = json_decode( wp_remote_retrieve_body( $response ) );
 			$response_code = wp_remote_retrieve_response_code( $response );
 
-			if ( isset( $body_json->success ) && false == $body_json->success ) {
+			if ( 401 === $response_code ) {
+
+				// Handle refreshing an OAuth token. Remove if not using OAuth.
+
+				if ( strpos( $body_json->message, 'expired' ) !== false ) {
+
+					$access_token                     = $this->refresh_token();
+					$args['headers']['Authorization'] = 'Bearer ' . $access_token;
+
+					$response = wp_safe_remote_request( $url, $args );
+
+				} else {
+
+					$response = new WP_Error( 'error', 'Invalid API credentials.' );
+
+				}
+			} elseif ( isset( $body_json->success ) && false === (bool) $body_json->success ) {
 
 				$response = new WP_Error( 'error', $body_json->message );
 
