@@ -18,6 +18,10 @@ Upload to your /wp-content/plugins/ directory
 
 ## Changelog
 
+### 1.1.0 - 4/18/2022
+* Updated for WP Fusion v3.40.0
+* Memoved `$map_meta_fields` in `add_contact()` and `update_contact()` methods
+
 ### 1.0.4 - 3/31/2022
 * Added example showing OAuth authorization fields and handling in admin class
 * Added `set_default_fields()` function in admin class

@@ -6,7 +6,7 @@ class WPF_Custom {
 	 * Contains API url
 	 *
 	 * @var string
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 
 	public $url = 'https://myapi.com';
@@ -21,7 +21,7 @@ class WPF_Custom {
 	 * With add_fields enabled, WP Fusion will allow users to type new filed names into the CRM Field select boxes.
 	 *
 	 * @var array
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 
 	public $supports = array( 'add_tags', 'add_fields' );
@@ -30,7 +30,7 @@ class WPF_Custom {
 	 * API parameters
 	 *
 	 * @var array
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 	public $params = array();
 
@@ -38,7 +38,7 @@ class WPF_Custom {
 	 * Lets us link directly to editing a contact record in the CRM.
 	 *
 	 * @var string
-	 * @since 1.0.3
+	 * @since x.x.x
 	 */
 	public $edit_url = '';
 
@@ -47,7 +47,7 @@ class WPF_Custom {
 	 * Client ID for OAuth (if applicable).
 	 *
 	 * @var string
-	 * @since 1.0.4
+	 * @since x.x.x
 	 */
 	public $client_id = '959bd865-5a24-4a43-a8bf-05a69c537938';
 
@@ -55,7 +55,7 @@ class WPF_Custom {
 	 * Client secret for OAuth (if applicable).
 	 *
 	 * @var string
-	 * @since 1.0.4
+	 * @since x.x.x
 	 */
 	public $client_secret = '56cc5735-c274-4e43-99d4-3660d816a624';
 
@@ -63,14 +63,14 @@ class WPF_Custom {
 	 * Authorization URL for OAuth (if applicable).
 	 *
 	 * @var string
-	 * @since 1.0.4
+	 * @since x.x.x
 	 */
 	public $auth_url = 'https://mycrm.com/oauth/authorize';
 
 	/**
 	 * Get things started
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 	public function __construct() {
 
@@ -93,7 +93,7 @@ class WPF_Custom {
 	 *
 	 * This function only runs if this CRM is the active CRM.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 	public function init() {
 
@@ -110,7 +110,7 @@ class WPF_Custom {
 	 * Formats outgoing data to match CRM field formats. This will vary
 	 * depending on the data formats accepted by the CRM.
 	 *
-	 * @since  1.0.3
+	 * @since  x.x.x
 	 *
 	 * @param  mixed  $value      The value.
 	 * @param  string $field_type The field type.
@@ -144,9 +144,11 @@ class WPF_Custom {
 	/**
 	 * Gets params for API calls.
 	 *
-	 * @since 1.0.0
+	 * @since  x.x.x
 	 *
-	 * @return array $params The API parameters.
+	 * @param  string $api_url The api URL.
+	 * @param  string $api_key The api key.
+	 * @return array  $params The API parameters.
 	 */
 	public function get_params( $api_url = null, $api_key = null ) {
 
@@ -157,8 +159,8 @@ class WPF_Custom {
 
 		// Get saved data from DB.
 		if ( empty( $api_url ) || empty( $api_key ) ) {
-			$api_url = wp_fusion()->settings->get( 'custom_url' );
-			$api_key = wp_fusion()->settings->get( 'custom_key' );
+			$api_url = wpf_get_option( 'custom_url' );
+			$api_key = wpf_get_option( 'custom_key' );
 		}
 
 		$this->url = $api_url;
@@ -177,7 +179,7 @@ class WPF_Custom {
 	/**
 	 * Refresh an access token from a refresh token. Remove if not using OAuth.
 	 *
-	 * @since  1.0.4
+	 * @since  x.x.x
 	 *
 	 * @return string An access token.
 	 */
@@ -218,7 +220,7 @@ class WPF_Custom {
 	/**
 	 * Gets the default fields.
 	 *
-	 * @since  1.0.4
+	 * @since  x.x.x
 	 *
 	 * @return array The default fields in the CRM.
 	 */
@@ -309,7 +311,7 @@ class WPF_Custom {
 	 * This is run during the setup process to validate that the user has
 	 * entered the correct API credentials.
 	 *
-	 * @since  1.0.0
+	 * @since  x.x.x
 	 *
 	 * @param  string $api_url The first API credential.
 	 * @param  string $api_key The second API credential.
@@ -341,7 +343,7 @@ class WPF_Custom {
 	/**
 	 * Performs initial sync once connection is configured.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @return bool
 	 */
@@ -364,7 +366,7 @@ class WPF_Custom {
 	/**
 	 * Gets all available tags and saves them to options.
 	 *
-	 * @since  1.0.0
+	 * @since  x.x.x
 	 *
 	 * @return array|WP_Error Either the available tags in the CRM, or a WP_Error.
 	 */
@@ -400,7 +402,7 @@ class WPF_Custom {
 	/**
 	 * Loads all custom fields from CRM and merges with local list.
 	 *
-	 * @since  1.0.0
+	 * @since  x.x.x
 	 *
 	 * @return array|WP_Error Either the available fields in the CRM, or a WP_Error.
 	 */
@@ -429,7 +431,7 @@ class WPF_Custom {
 	/**
 	 * Gets contact ID for a user based on email address.
 	 *
-	 * @since  1.0.0
+	 * @since  x.x.x
 	 *
 	 * @param  string $email_address The email address to look up.
 	 * @return int|WP_Error The contact ID in the CRM.
@@ -453,7 +455,7 @@ class WPF_Custom {
 	/**
 	 * Gets all tags currently applied to the contact in the CRM.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param int $contact_id The contact ID to load the tags for.
 	 * @return array|WP_Error The tags currently applied to the contact in the CRM.
@@ -480,7 +482,7 @@ class WPF_Custom {
 	/**
 	 * Applies tags to a contact.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param array $tags       A numeric array of tags to apply to the contact.
 	 * @param int   $contact_id The contact ID to apply the tags to.
@@ -504,7 +506,7 @@ class WPF_Custom {
 	/**
 	 * Removes tags from a contact.
 	 *
-	 * @since  1.0.0
+	 * @since  x.x.x
 	 *
 	 * @param  array $tags       A numeric array of tags to remove from the contact.
 	 * @param  int   $contact_id The contact ID to remove the tags from.
@@ -530,17 +532,12 @@ class WPF_Custom {
 	/**
 	 * Adds a new contact.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
-	 * @param array $contact_data    An associative array of contact fields and field values.
-	 * @param bool  $map_meta_fields Whether to map WordPress meta keys to CRM field keys.
+	 * @param array $contact_data An associative array of contact fields and field values.
 	 * @return int|WP_Error Contact ID on success, or WP Error.
 	 */
-	public function add_contact( $contact_data, $map_meta_fields = true ) {
-
-		if ( $map_meta_fields ) {
-			$contact_data = wp_fusion()->crm_base->map_meta_fields( $contact_data );
-		}
+	public function add_contact( $contact_data ) {
 
 		$request        = $this->url . '/endpoint/';
 		$params         = $this->get_params();
@@ -555,25 +552,20 @@ class WPF_Custom {
 		$body = json_decode( wp_remote_retrieve_body( $response ) );
 
 		// Get new contact ID out of response.
-		return $contact_id;
+		return $body->id;
 
 	}
 
 	/**
 	 * Updates an existing contact record.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
-	 * @param int   $contact_id      The ID of the contact to update.
-	 * @param array $contact_data    An associative array of contact fields and field values.
-	 * @param bool  $map_meta_fields Whether to map WordPress meta keys to CRM field keys.
+	 * @param int   $contact_id   The ID of the contact to update.
+	 * @param array $contact_data An associative array of contact fields and field values.
 	 * @return bool|WP_Error Error if the API call failed.
 	 */
-	public function update_contact( $contact_id, $contact_data, $map_meta_fields = true ) {
-
-		if ( $map_meta_fields ) {
-			$contact_data = wp_fusion()->crm_base->map_meta_fields( $contact_data );
-		}
+	public function update_contact( $contact_id, $contact_data ) {
 
 		$request        = $this->url . '/endpoint/';
 		$params         = $this->get_params();
@@ -591,7 +583,7 @@ class WPF_Custom {
 	/**
 	 * Loads a contact record from the CRM and maps CRM fields to WordPress fields
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param int $contact_id The ID of the contact to load.
 	 * @return array|WP_Error User meta data that was returned.
@@ -623,7 +615,7 @@ class WPF_Custom {
 	/**
 	 * Gets a list of contact IDs based on tag
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param string $tag The tag ID or name to search for.
 	 * @return array Contact IDs returned.

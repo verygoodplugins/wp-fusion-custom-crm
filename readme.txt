@@ -2,8 +2,12 @@
 Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
-Tested up to: 5.9.2
-Stable tag: 1.0.4
+Tested up to: 5.9.3
+Stable tag: 1.1.0
+
+= 1.1.0 - 4/18/2022 =
+* Updated for WP Fusion v3.40.0
+* Memoved `$map_meta_fields` in `add_contact()` and `update_contact()` methods
 
 = 1.0.4 - 3/31/2022 =
 * Added example showing OAuth authorization fields and handling in admin class

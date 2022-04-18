@@ -6,7 +6,7 @@ class WPF_Custom_Admin {
 	 * The CRM slug
 	 *
 	 * @var string
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 
 	private $slug;
@@ -15,7 +15,7 @@ class WPF_Custom_Admin {
 	 * The CRM name
 	 *
 	 * @var string
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 
 	private $name;
@@ -24,7 +24,7 @@ class WPF_Custom_Admin {
 	 * The CRM object
 	 *
 	 * @var object
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 
 	private $crm;
@@ -32,7 +32,7 @@ class WPF_Custom_Admin {
 	/**
 	 * Get things started.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 	public function __construct( $slug, $name, $crm ) {
 
@@ -55,7 +55,7 @@ class WPF_Custom_Admin {
 	/**
 	 * Hooks to run when this CRM is selected as active
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 */
 	public function init() {
 
@@ -72,7 +72,7 @@ class WPF_Custom_Admin {
 	 * If we're using the WP Fusion app, send the request through wpfusion.com,
 	 * otherwise allow a custom app.
 	 *
-	 * @since  1.0.4
+	 * @since  x.x.x
 	 *
 	 * @return string The URL.
 	 */
@@ -92,7 +92,7 @@ class WPF_Custom_Admin {
 	/**
 	 * Listen for an OAuth response and maybe complete setup. Remove if not using OAuth.
 	 *
-	 * @since 1.0.4
+	 * @since x.x.x
 	 */
 	public function maybe_oauth_complete() {
 
@@ -141,7 +141,7 @@ class WPF_Custom_Admin {
 	/**
 	 * Loads CRM connection information on settings page
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param array $settings The registered settings on the options page.
 	 * @param array $options  The options saved in the database.
@@ -217,7 +217,7 @@ class WPF_Custom_Admin {
 	 * Loads standard CRM field names and attempts to match them up with
 	 * standard local ones.
 	 *
-	 * @since  1.0.4
+	 * @since  x.x.x
 	 *
 	 * @param  array $options The options.
 	 * @return array The options.
@@ -241,7 +241,7 @@ class WPF_Custom_Admin {
 	/**
 	 * Puts a div around the CRM configuration section so it can be toggled
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @param string $id    The ID of the field.
 	 * @param array  $field The field properties.
@@ -259,14 +259,16 @@ class WPF_Custom_Admin {
 	/**
 	 * Verify connection credentials.
 	 *
-	 * @since 1.0.0
+	 * @since x.x.x
 	 *
 	 * @return mixed JSON response.
 	 */
 	public function test_connection() {
 
-		$api_url = esc_url( $_POST['custom_url'] );
-		$api_key = sanitize_text_field( $_POST['custom_key'] );
+		check_ajax_referer( 'wpf_settings_nonce' );
+
+		$api_url = esc_url_raw( wp_unslash( $_POST['custom_url'] ) );
+		$api_key = sanitize_text_field( wp_unslash( $_POST['custom_key'] ) );
 
 		$connection = $this->crm->connect( $api_url, $api_key, true );
 
