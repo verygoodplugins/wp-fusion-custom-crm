@@ -20,11 +20,13 @@ class WPF_Custom {
 	 * "add_fields" means that custom field / attrubute keys don't need to exist first in the CRM to be used.
 	 * With add_fields enabled, WP Fusion will allow users to type new filed names into the CRM Field select boxes.
 	 *
+	 * "events" enables the integration for Event Tracking: https://wpfusion.com/documentation/event-tracking/event-tracking-overview/.
+	 *
 	 * @var array
 	 * @since x.x.x
 	 */
 
-	public $supports = array( 'add_tags', 'add_fields' );
+	public $supports = array( 'add_tags', 'add_fields', 'events' );
 
 	/**
 	 * API parameters
@@ -98,6 +100,7 @@ class WPF_Custom {
 	public function init() {
 
 		add_filter( 'wpf_format_field_value', array( $this, 'format_field_value' ), 10, 3 );
+		add_filter( 'wpf_format_post_data', array( $this, 'format_field_value' ), 10, 3 );
 
 		// Allows for linking directly to contact records in the CRM.
 		$this->edit_url = trailingslashit( wp_fusion()->settings->get( 'custom_url' ) ) . 'app/contacts/%d/';
@@ -138,6 +141,36 @@ class WPF_Custom {
 			return $value;
 
 		}
+
+	}
+
+
+	/**
+	 * Formats post data.
+	 *
+	 * Formats incoming data to match WP Fusion field formats. This will vary
+	 * depending on the data formats returned by the CRM.
+	 *
+	 * @since  x.x.x
+	 *
+	 * @param  array $post_data The post data.
+	 * @return array $post_data The formatted post data.
+	 */
+	public function format_post_data( $post_data ) {
+
+		$payload = json_decode( file_get_contents( 'php://input' ) );
+
+		if ( ! empty( $payload ) ) {
+
+			$post_data['contact_id'] = $payload->contact->id; // the contact ID is required.
+
+			// You can optionally POST an array of tags to the update or update_tags endpoints.
+			// If you do, WP Fusion will skip the API call to load the tags and instead save
+			// them directly from the payload to the user's meta.
+			$post_data['tags'] = wp_list_pluck( $payload->contact->tags, 'name' );
+		}
+
+		return $post_data;
 
 	}
 
@@ -638,6 +671,52 @@ class WPF_Custom {
 		}
 
 		return $contact_ids;
+
+	}
+
+	/**
+	 * Track event.
+	 *
+	 * Track an event with the AC site tracking API.
+	 *
+	 * @since  x.x.x
+	 *
+	 * @link   https://wpfusion.com/documentation/event-tracking/event-tracking-overview/
+	 *
+	 * @param  string      $event         The event title.
+	 * @param  bool|string $event_data    The event description.
+	 * @param  bool|string $email_address The user email address.
+	 * @return bool|WP_Error True if success, WP_Error if failed.
+	 */
+	public function track_event( $event, $event_data = false, $email_address = false ) {
+
+		// Get the email address to track.
+
+		if ( empty( $email_address ) ) {
+			$email_address = wpf_get_current_user_email();
+		}
+
+		if ( false === $email_address ) {
+			return; // can't track without an email.
+		}
+
+		$data = array(
+			'email'       => $email_address,
+			'event_name'  => $event,
+			'event_value' => $event_data,
+		);
+
+		$params             = $this->get_params();
+		$params['body']     = wp_json_encode( $data );
+		$params['blocking'] = false; // we don't need to wait for a response.
+
+		$response = wp_safe_remote_post( $this->url . '/track-event/', $params );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return true;
 
 	}
 

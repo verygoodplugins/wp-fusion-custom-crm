@@ -2,8 +2,11 @@
 Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
-Tested up to: 5.9.3
-Stable tag: 1.1.0
+Tested up to: 6.1.1
+Stable tag: 1.1.1
+
+= 1.1.1 - 12/12/2022 =
+* Added examples for `format_post_data()` and `track_event()`
 
 = 1.1.0 - 4/18/2022 =
 * Updated for WP Fusion v3.40.0

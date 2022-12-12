@@ -18,6 +18,9 @@ Upload to your /wp-content/plugins/ directory
 
 ## Changelog
 
+### 1.1.1 - 12/12/2022
+* Added examples for `format_post_data()` and `track_event()`
+
 ### 1.1.0 - 4/18/2022
 * Updated for WP Fusion v3.40.0
 * Memoved `$map_meta_fields` in `add_contact()` and `update_contact()` methods
