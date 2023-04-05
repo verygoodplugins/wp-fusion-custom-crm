@@ -20,6 +20,9 @@ Upload to your /wp-content/plugins/ directory
 
 ## Changelog
 
+### 1.1.3 - 4/5/2023
+* Improved - The OAuth setup fields are now commented out to prevent UI glitches on the setup tab
+
 ### 1.1.2 - 4/5/2023
 * Added additional inline docs
 * Code cleanup

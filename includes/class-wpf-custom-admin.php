@@ -159,14 +159,14 @@ class WPF_Custom_Admin {
 
 		$new_settings['custom_url'] = array(
 			'title'   => __( 'URL', 'wp-fusion' ),
-			'desc'    => __( 'URL to your custom CRM', 'wp-fusion' ),
+			'desc'    => __( 'URL to your custom CRM.', 'wp-fusion' ),
 			'type'    => 'text',
 			'section' => 'setup',
 		);
 
 		$new_settings['custom_key'] = array(
 			'title'       => __( 'API Key', 'wp-fusion' ),
-			'desc'        => __( 'Your API key', 'wp-fusion' ),
+			'desc'        => __( 'Your API key.', 'wp-fusion' ),
 			'section'     => 'setup',
 			'class'       => 'api_key',
 			'type'        => 'api_validate', // api_validate field type causes the Test Connection button to be appended to the input.
@@ -175,6 +175,7 @@ class WPF_Custom_Admin {
 
 		// OR, Option 2, OAuth based authentication. Remove if not using OAuth.
 
+		/*
 		if ( empty( $options[ "{$this->slug}_refresh_token" ] ) && ! isset( $_GET['code'] ) ) {
 
 			$new_settings[ "{$this->slug}_auth" ] = array(
@@ -203,7 +204,7 @@ class WPF_Custom_Admin {
 				'desc'        => '<a href="' . esc_url( $this->get_oauth_url() ) . '">' . sprintf( esc_html__( 'Re-authorize with %s', 'wp-fusion' ), $this->crm->name ) . '</a>. ',
 			);
 
-		}
+		} */
 
 		$settings = wp_fusion()->settings->insert_setting_after( 'crm', $settings, $new_settings );
 

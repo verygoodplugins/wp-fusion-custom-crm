@@ -3,7 +3,10 @@ Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
 Tested up to: 6.2.0
-Stable tag: 1.1.2
+Stable tag: 1.1.3
+
+= 1.1.3 - 4/5/2023 =
+* Improved - The OAuth setup fields are now commented out to prevent UI glitches on the setup tab
 
 = 1.1.2 - 4/5/2023 =
 * Added additional inline docs
