@@ -53,15 +53,13 @@ class WPF_Custom_Admin {
 	}
 
 	/**
-	 * Hooks to run when this CRM is selected as active
+	 * Hooks to run in the admin when this CRM is selected as active.
 	 *
 	 * @since x.x.x
 	 */
 	public function init() {
 
-		// Hooks in init() will run on the admin screen when this CRM is active.
-
-		add_filter( 'wpf_initialize_options_contact_fields', array( $this, 'add_default_fields' ), 10 );
+		add_filter( 'wpf_initialize_options_contact_fields', array( $this, 'add_default_fields' ) );
 
 	}
 
@@ -139,7 +137,7 @@ class WPF_Custom_Admin {
 
 
 	/**
-	 * Loads CRM connection information on settings page
+	 * Loads CRM connection information on settings page.
 	 *
 	 * @since x.x.x
 	 *
@@ -280,13 +278,15 @@ class WPF_Custom_Admin {
 		} else {
 
 			// Save the API credentials.
-			$options                          = wp_fusion()->settings->get_all();
-			$options['custom_url']            = $api_url;
-			$options['custom_key']            = $api_key;
-			$options['crm']                   = $this->slug;
-			$options['connection_configured'] = true;
 
-			wp_fusion()->settings->set_all( $options );
+			$options = array(
+				'custom_url'            => $api_url,
+				'custom_key'            => $api_key,
+				'crm'                   => $this->slug,
+				'connection_configured' => true,
+			);
+
+			wp_fusion()->settings->set_multiple( $options );
 
 			wp_send_json_success();
 

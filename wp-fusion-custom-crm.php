@@ -1,12 +1,12 @@
 <?php
 
 /**
-Plugin Name: WP Fusion - Custom CRM
-Description: Boostrap for connecting WP Fusion to a custom CRM
-Plugin URI: https://verygoodplugins.com/
-Version: 1.1.1
-Author: Very Good Plugins
-Author URI: https://verygoodplugins.com/
+ * Plugin Name: WP Fusion - Custom CRM
+ * Description: Boostrap for connecting WP Fusion to a custom CRM
+ * Plugin URI: https://verygoodplugins.com/
+ * Version: 1.1.2
+ * Author: Very Good Plugins
+ * Author URI: https://verygoodplugins.com/
 */
 
 /**

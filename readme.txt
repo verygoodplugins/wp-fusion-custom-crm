@@ -2,8 +2,12 @@
 Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
-Tested up to: 6.1.1
-Stable tag: 1.1.1
+Tested up to: 6.2.0
+Stable tag: 1.1.2
+
+= 1.1.2 - 4/5/2023 =
+* Added additional inline docs
+* Code cleanup
 
 = 1.1.1 - 12/12/2022 =
 * Added examples for `format_post_data()` and `track_event()`

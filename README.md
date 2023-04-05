@@ -8,6 +8,8 @@ This plugin can be customized to allow [WP Fusion](https://wpfusion.com/) to con
 
 More info in our [Creating Custom CRM Modules tutorial](https://wpfusion.com/documentation/advanced-developer-tutorials/creating-custom-crm-modules/).
 
+This starter plugin uses `custom` and `Custom` in several places as the CRM slug and name (respectively). You can do a case-sensitive find and replace on these two strings to update it for your CRM.
+
 ### Prerequisites
 
 Requires [WP Fusion](https://wpfusion.com/)
@@ -17,6 +19,10 @@ Requires [WP Fusion](https://wpfusion.com/)
 Upload to your /wp-content/plugins/ directory
 
 ## Changelog
+
+### 1.1.2 - 4/5/2023
+* Added additional inline docs
+* Code cleanup
 
 ### 1.1.1 - 12/12/2022
 * Added examples for `format_post_data()` and `track_event()`

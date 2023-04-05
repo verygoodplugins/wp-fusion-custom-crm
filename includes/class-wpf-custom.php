@@ -1,6 +1,29 @@
 <?php
 
+/**
+ * WP Fusion Custom CRM class.
+ *
+ * @since x.x.x
+ */
 class WPF_Custom {
+
+	/**
+	 * The CRM slug.
+	 *
+	 * @var string
+	 * @since x.x.x
+	 */
+
+	public $slug = 'custom';
+
+	/**
+	 * The CRM name.
+	 *
+	 * @var string
+	 * @since x.x.x
+	 */
+
+	public $name = 'Custom';
 
 	/**
 	 * Contains API url
@@ -27,14 +50,6 @@ class WPF_Custom {
 	 */
 
 	public $supports = array( 'add_tags', 'add_fields', 'events' );
-
-	/**
-	 * API parameters
-	 *
-	 * @var array
-	 * @since x.x.x
-	 */
-	public $params = array();
 
 	/**
 	 * Lets us link directly to editing a contact record in the CRM.
@@ -70,14 +85,11 @@ class WPF_Custom {
 	public $auth_url = 'https://mycrm.com/oauth/authorize';
 
 	/**
-	 * Get things started
+	 * Get things started.
 	 *
 	 * @since x.x.x
 	 */
 	public function __construct() {
-
-		$this->slug = 'custom';
-		$this->name = 'Custom';
 
 		// Set up admin options.
 		if ( is_admin() ) {
@@ -104,6 +116,9 @@ class WPF_Custom {
 
 		// Allows for linking directly to contact records in the CRM.
 		$this->edit_url = trailingslashit( wp_fusion()->settings->get( 'custom_url' ) ) . 'app/contacts/%d/';
+
+		// Sets the base URL for API calls.
+		$this->url = wpf_get_option( 'custom_url' );
 	}
 
 
@@ -115,8 +130,10 @@ class WPF_Custom {
 	 *
 	 * @since  x.x.x
 	 *
+	 * @link https://wpfusion.com/documentation/getting-started/syncing-contact-fields/#field-types
+	 *
 	 * @param  mixed  $value      The value.
-	 * @param  string $field_type The field type.
+	 * @param  string $field_type The field type ('text', 'date', 'multiselect', 'checkbox').
 	 * @param  string $field      The CRM field identifier.
 	 * @return mixed  The field value.
 	 */
@@ -124,7 +141,9 @@ class WPF_Custom {
 
 		if ( 'date' === $field_type && ! empty( $value ) ) {
 
-			$date = date( 'm/d/Y H:i:s', $value );
+			// Dates come in as a timestamp.
+
+			$date = gmdate( 'm/d/Y H:i:s', $value );
 
 			return $date;
 
@@ -148,10 +167,12 @@ class WPF_Custom {
 	/**
 	 * Formats post data.
 	 *
-	 * Formats incoming data to match WP Fusion field formats. This will vary
-	 * depending on the data formats returned by the CRM.
+	 * This runs when a webhook is received and extracts the contact ID (and optionally
+	 * tags) from the webhook payload.
 	 *
 	 * @since  x.x.x
+	 *
+	 * @link https://wpfusion.com/documentation/webhooks/about-webhooks/
 	 *
 	 * @param  array $post_data The post data.
 	 * @return array $post_data The formatted post data.
@@ -177,42 +198,33 @@ class WPF_Custom {
 	/**
 	 * Gets params for API calls.
 	 *
-	 * @since  x.x.x
+	 * @since x.x.x
 	 *
-	 * @param  string $api_url The api URL.
-	 * @param  string $api_key The api key.
+	 * @param string $api_key The API key.
 	 * @return array  $params The API parameters.
 	 */
-	public function get_params( $api_url = null, $api_key = null ) {
-
-		// If it's already been set up.
-		if ( $this->params ) {
-			return $this->params;
-		}
+	public function get_params( $api_key = null ) {
 
 		// Get saved data from DB.
-		if ( empty( $api_url ) || empty( $api_key ) ) {
-			$api_url = wpf_get_option( 'custom_url' );
+		if ( ! $api_key ) {
 			$api_key = wpf_get_option( 'custom_key' );
 		}
 
-		$this->url = $api_url;
-
-		$this->params = array(
+		$params = array(
 			'user-agent' => 'WP Fusion; ' . home_url(),
 			'timeout'    => 15,
 			'headers'    => array(
-				'Api-Key' => $api_key,
+				'Authorization' => 'Bearer ' . $api_key,
 			),
 		);
 
-		return $this->params;
+		return $params;
 	}
 
 	/**
 	 * Refresh an access token from a refresh token. Remove if not using OAuth.
 	 *
-	 * @since  x.x.x
+	 * @since x.x.x
 	 *
 	 * @return string An access token.
 	 */
@@ -253,7 +265,7 @@ class WPF_Custom {
 	/**
 	 * Gets the default fields.
 	 *
-	 * @since  x.x.x
+	 * @since x.x.x
 	 *
 	 * @return array The default fields in the CRM.
 	 */
@@ -292,7 +304,7 @@ class WPF_Custom {
 	/**
 	 * Check HTTP Response for errors and return WP_Error if found.
 	 *
-	 * @since  1.0.2
+	 * @since x.x.x
 	 *
 	 * @param  object $response The HTTP response.
 	 * @param  array  $args     The HTTP request arguments.
@@ -357,12 +369,8 @@ class WPF_Custom {
 			return true;
 		}
 
-		if ( ! $this->params ) {
-			$this->get_params( $api_url, $api_key );
-		}
-
-		$request  = $this->url . '/endpoint/';
-		$response = wp_safe_remote_get( $request, $this->params );
+		$request  = $api_url . '/endpoint/';
+		$response = wp_safe_remote_get( $request, $this->get_params( $api_key ) );
 
 		// Validate the connection.
 		if ( is_wp_error( $response ) ) {
@@ -381,10 +389,6 @@ class WPF_Custom {
 	 * @return bool
 	 */
 	public function sync() {
-
-		if ( is_wp_error( $this->connect() ) ) {
-			return false;
-		}
 
 		$this->sync_tags();
 		$this->sync_crm_fields();
@@ -495,12 +499,8 @@ class WPF_Custom {
 	 */
 	public function get_tags( $contact_id ) {
 
-		if ( ! $this->params ) {
-			$this->get_params();
-		}
-
 		$request  = $this->url . '/endpoint/';
-		$response = wp_safe_remote_get( $request, $this->params );
+		$response = wp_safe_remote_get( $request, $this->get_params() );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -509,6 +509,8 @@ class WPF_Custom {
 		$response = json_decode( wp_remote_retrieve_body( $response ) );
 
 		// Parse response to create an array of tag ids. $tags = array(123, 678, 543); (should not be an associative array).
+		$tags = wp_list_pluck( $response->tags, 'id' );
+
 		return $tags;
 	}
 
@@ -600,7 +602,7 @@ class WPF_Custom {
 	 */
 	public function update_contact( $contact_id, $contact_data ) {
 
-		$request        = $this->url . '/endpoint/';
+		$request        = $this->url . '/endpoint/' . $contact_id;
 		$params         = $this->get_params();
 		$params['body'] = wp_json_encode( $contact_data );
 
@@ -684,11 +686,11 @@ class WPF_Custom {
 	 * @link   https://wpfusion.com/documentation/event-tracking/event-tracking-overview/
 	 *
 	 * @param  string      $event         The event title.
-	 * @param  bool|string $event_data    The event description.
+	 * @param  array       $event_data    The event data (associative array).
 	 * @param  bool|string $email_address The user email address.
 	 * @return bool|WP_Error True if success, WP_Error if failed.
 	 */
-	public function track_event( $event, $event_data = false, $email_address = false ) {
+	public function track_event( $event, $event_data = array(), $email_address = false ) {
 
 		// Get the email address to track.
 
