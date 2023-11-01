@@ -4,7 +4,7 @@
  * Plugin Name: WP Fusion - Custom CRM
  * Description: Boostrap for connecting WP Fusion to a custom CRM
  * Plugin URI: https://verygoodplugins.com/
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Very Good Plugins
  * Author URI: https://verygoodplugins.com/
 */
@@ -36,7 +36,7 @@ if ( ! function_exists( 'add_action' ) ) {
 
 
 if ( ! class_exists( 'WPF_Custom' ) ) {
-	include_once dirname( __FILE__ ) . '/includes/class-wpf-custom.php';
+	include_once __DIR__ . '/includes/class-wpf-custom.php';
 }
 
 /**
@@ -44,14 +44,13 @@ if ( ! class_exists( 'WPF_Custom' ) ) {
  *
  * @since  1.0.0
  *
- * @param  array $crms   The array of registered CRM modules.
+ * @param  array $crms The array of registered CRM modules.
  * @return array $crms The array of registered CRM modules.
  */
 function wpf_custom_crm( $crms ) {
 
 	$crms['custom'] = 'WPF_Custom';
 	return $crms;
-
 }
 
 add_filter( 'wpf_crms', 'wpf_custom_crm' );

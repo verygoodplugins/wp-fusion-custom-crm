@@ -49,7 +49,6 @@ class WPF_Custom_Admin {
 		if ( wp_fusion()->settings->get( 'crm' ) === $this->slug ) {
 			$this->init();
 		}
-
 	}
 
 	/**
@@ -60,7 +59,6 @@ class WPF_Custom_Admin {
 	public function init() {
 
 		add_filter( 'wpf_initialize_options_contact_fields', array( $this, 'add_default_fields' ) );
-
 	}
 
 
@@ -84,7 +82,6 @@ class WPF_Custom_Admin {
 		);
 
 		return apply_filters( "wpf_{$this->slug}_auth_url", add_query_arg( $args, 'https://wpfusion.com/oauth/' ) );
-
 	}
 
 	/**
@@ -132,7 +129,6 @@ class WPF_Custom_Admin {
 			exit;
 
 		}
-
 	}
 
 
@@ -209,7 +205,6 @@ class WPF_Custom_Admin {
 		$settings = wp_fusion()->settings->insert_setting_after( 'crm', $settings, $new_settings );
 
 		return $settings;
-
 	}
 
 	/**
@@ -233,7 +228,6 @@ class WPF_Custom_Admin {
 		}
 
 		return $options;
-
 	}
 
 
@@ -244,14 +238,12 @@ class WPF_Custom_Admin {
 	 *
 	 * @param string $id    The ID of the field.
 	 * @param array  $field The field properties.
-	 * @return mixed HTML output.
 	 */
 	public function show_field_custom_header_begin( $id, $field ) {
 
 		echo '</table>';
 		$crm = wp_fusion()->settings->get( 'crm' );
-		echo '<div id="' . esc_attr( $this->slug ) . '" class="crm-config ' . ( $crm === false || $crm !== $this->slug ? 'hidden' : 'crm-active' ) . '" data-name="' . esc_attr( $this->name ) . '" data-crm="' . esc_attr( $this->slug ) . '">';
-
+		echo '<div id="' . esc_attr( $this->slug ) . '" class="crm-config ' . ( false === $crm || $crm !== $this->slug ? 'hidden' : 'crm-active' ) . '" data-name="' . esc_attr( $this->name ) . '" data-crm="' . esc_attr( $this->slug ) . '">';
 	}
 
 
@@ -260,7 +252,7 @@ class WPF_Custom_Admin {
 	 *
 	 * @since x.x.x
 	 *
-	 * @return mixed JSON response.
+	 * @return void
 	 */
 	public function test_connection() {
 
@@ -292,10 +284,5 @@ class WPF_Custom_Admin {
 			wp_send_json_success();
 
 		}
-
-		die();
-
 	}
-
-
 }

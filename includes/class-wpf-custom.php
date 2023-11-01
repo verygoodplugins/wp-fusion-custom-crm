@@ -45,7 +45,7 @@ class WPF_Custom {
 	 *
 	 * "events" enables the integration for Event Tracking: https://wpfusion.com/documentation/event-tracking/event-tracking-overview/.
 	 *
-	 * @var array
+	 * @var array<string>
 	 * @since x.x.x
 	 */
 
@@ -93,13 +93,12 @@ class WPF_Custom {
 
 		// Set up admin options.
 		if ( is_admin() ) {
-			require_once dirname( __FILE__ ) . '/class-wpf-custom-admin.php';
+			require_once __DIR__ . '/class-wpf-custom-admin.php';
 			new WPF_Custom_Admin( $this->slug, $this->name, $this );
 		}
 
 		// Error handling.
 		add_filter( 'http_response', array( $this, 'handle_http_response' ), 50, 3 );
-
 	}
 
 	/**
@@ -160,7 +159,6 @@ class WPF_Custom {
 			return $value;
 
 		}
-
 	}
 
 
@@ -192,7 +190,6 @@ class WPF_Custom {
 		}
 
 		return $post_data;
-
 	}
 
 	/**
@@ -201,7 +198,7 @@ class WPF_Custom {
 	 * @since x.x.x
 	 *
 	 * @param string $api_key The API key.
-	 * @return array  $params The API parameters.
+	 * @return array<string|mixed> $params The API parameters.
 	 */
 	public function get_params( $api_key = null ) {
 
@@ -226,7 +223,7 @@ class WPF_Custom {
 	 *
 	 * @since x.x.x
 	 *
-	 * @return string An access token.
+	 * @return string|WP_Error An access token or error.
 	 */
 	public function refresh_token() {
 
@@ -259,7 +256,6 @@ class WPF_Custom {
 		wp_fusion()->settings->set( "{$this->slug}_token", $body_json->access_token );
 
 		return $body_json->access_token;
-
 	}
 
 	/**
@@ -267,7 +263,7 @@ class WPF_Custom {
 	 *
 	 * @since x.x.x
 	 *
-	 * @return array The default fields in the CRM.
+	 * @return array<string, array> The default fields in the CRM.
 	 */
 	public static function get_default_fields() {
 
@@ -297,7 +293,6 @@ class WPF_Custom {
 				'crm_field' => 'country',
 			),
 		);
-
 	}
 
 
@@ -306,10 +301,10 @@ class WPF_Custom {
 	 *
 	 * @since x.x.x
 	 *
-	 * @param  object $response The HTTP response.
+	 * @param  array  $response The HTTP response.
 	 * @param  array  $args     The HTTP request arguments.
 	 * @param  string $url      The HTTP request URL.
-	 * @return object $response The response.
+	 * @return array|WP_Error The response or WP_Error on error.
 	 */
 	public function handle_http_response( $response, $args, $url ) {
 
@@ -324,7 +319,12 @@ class WPF_Custom {
 
 				if ( strpos( $body_json->message, 'expired' ) !== false ) {
 
-					$access_token                     = $this->refresh_token();
+					$access_token = $this->refresh_token();
+
+					if ( is_wp_error( $access_token ) ) {
+						return $access_token;
+					}
+
 					$args['headers']['Authorization'] = 'Bearer ' . $access_token;
 
 					$response = wp_safe_remote_request( $url, $args );
@@ -334,7 +334,7 @@ class WPF_Custom {
 					$response = new WP_Error( 'error', 'Invalid API credentials.' );
 
 				}
-			} elseif ( isset( $body_json->success ) && false === (bool) $body_json->success ) {
+			} elseif ( isset( $body_json->success ) && false === (bool) $body_json->success && isset( $body_json->message ) ) {
 
 				$response = new WP_Error( 'error', $body_json->message );
 
@@ -346,7 +346,6 @@ class WPF_Custom {
 		}
 
 		return $response;
-
 	}
 
 
@@ -396,7 +395,6 @@ class WPF_Custom {
 		do_action( 'wpf_sync' );
 
 		return true;
-
 	}
 
 
@@ -475,7 +473,7 @@ class WPF_Custom {
 	 */
 	public function get_contact_id( $email_address ) {
 
-		$request  = $this->url . '/endpoint/?email=' . urlencode( $email_address );
+		$request  = $this->url . '/endpoint/?email=' . rawurlencode( $email_address );
 		$response = wp_safe_remote_get( $request, $this->get_params() );
 
 		if ( is_wp_error( $response ) ) {
@@ -499,7 +497,7 @@ class WPF_Custom {
 	 */
 	public function get_tags( $contact_id ) {
 
-		$request  = $this->url . '/endpoint/';
+		$request  = $this->url . '/endpoint/' . $contact_id;
 		$response = wp_safe_remote_get( $request, $this->get_params() );
 
 		if ( is_wp_error( $response ) ) {
@@ -525,7 +523,7 @@ class WPF_Custom {
 	 */
 	public function apply_tags( $tags, $contact_id ) {
 
-		$request        = $this->url . '/endpoint/';
+		$request        = $this->url . '/endpoint/' . $contact_id;
 		$params         = $this->get_params();
 		$params['body'] = wp_json_encode( $tags );
 
@@ -549,7 +547,7 @@ class WPF_Custom {
 	 */
 	public function remove_tags( $tags, $contact_id ) {
 
-		$request        = $this->url . '/endpoint/';
+		$request        = $this->url . '/endpoint/' . $contact_id;
 		$params         = $this->get_params();
 		$params['body'] = wp_json_encode( $tags );
 
@@ -560,7 +558,6 @@ class WPF_Custom {
 		}
 
 		return true;
-
 	}
 
 
@@ -588,7 +585,6 @@ class WPF_Custom {
 
 		// Get new contact ID out of response.
 		return $body->id;
-
 	}
 
 	/**
@@ -653,7 +649,7 @@ class WPF_Custom {
 	 * @since x.x.x
 	 *
 	 * @param string $tag The tag ID or name to search for.
-	 * @return array Contact IDs returned.
+	 * @return array|WP_Error Contact IDs returned or error.
 	 */
 	public function load_contacts( $tag ) {
 
@@ -673,7 +669,6 @@ class WPF_Custom {
 		}
 
 		return $contact_ids;
-
 	}
 
 	/**
@@ -699,7 +694,7 @@ class WPF_Custom {
 		}
 
 		if ( false === $email_address ) {
-			return; // can't track without an email.
+			return false; // can't track without an email.
 		}
 
 		$data = array(
@@ -719,7 +714,5 @@ class WPF_Custom {
 		}
 
 		return true;
-
 	}
-
 }
