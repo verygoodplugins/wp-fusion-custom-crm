@@ -40,16 +40,28 @@ class WPF_Custom {
 	 * "add_tags" means that tags are applied over the API as strings (no tag IDs).
 	 * With add_tags enabled, WP Fusion will allow users to type new tag names into the tag select boxes.
 	 *
+	 * "add_tags_api" means that tags can be created via an API call. Uses the add_tag() method.
+	 *
+	 * "lists" means contacts can be added to lists in addition to tags. Requires the sync_lists() method.
+	 *
 	 * "add_fields" means that custom field / attrubute keys don't need to exist first in the CRM to be used.
 	 * With add_fields enabled, WP Fusion will allow users to type new filed names into the CRM Field select boxes.
 	 *
 	 * "events" enables the integration for Event Tracking: https://wpfusion.com/documentation/event-tracking/event-tracking-overview/.
 	 *
+	 * "events_multi_key" enables the integration for Event Tracking with multiple keys: https://wpfusion.com/documentation/event-tracking/event-tracking-overview/#multi-key-events.
+	 *
 	 * @var array<string>
 	 * @since x.x.x
 	 */
 
-	public $supports = array( 'add_tags', 'add_fields', 'events' );
+	public $supports = array(
+		'add_tags',
+		'add_tags_api',
+		'lists',
+		'add_fields',
+		'events_multi_key',
+	);
 
 	/**
 	 * Lets us link directly to editing a contact record in the CRM.
@@ -279,18 +291,21 @@ class WPF_Custom {
 			'user_email'     => array(
 				'crm_label' => 'Email',
 				'crm_field' => 'email',
+				'crm_type'  => 'email',
 			),
 			'billing_phone'  => array(
 				'crm_label' => 'Phone',
 				'crm_field' => 'contact_no',
+				'crm_type'  => 'tel',
 			),
 			'billing_state'  => array(
 				'crm_label' => 'State',
 				'crm_field' => 'state',
 			),
-			'billing_counry' => array(
+			'billing_country' => array(
 				'crm_label' => 'Country',
 				'crm_field' => 'country',
+				'crm_type'  => 'country',
 			),
 		);
 	}
@@ -390,6 +405,7 @@ class WPF_Custom {
 	public function sync() {
 
 		$this->sync_tags();
+		$this->sync_lists(); // if $this->supports( 'lists' );
 		$this->sync_crm_fields();
 
 		do_action( 'wpf_sync' );
@@ -435,13 +451,13 @@ class WPF_Custom {
 
 
 	/**
-	 * Loads all custom fields from CRM and merges with local list.
+	 * Gets all available lists and saves them to options.
 	 *
 	 * @since  x.x.x
 	 *
-	 * @return array|WP_Error Either the available fields in the CRM, or a WP_Error.
+	 * @return array|WP_Error Either the available lists in the CRM, or a WP_Error.
 	 */
-	public function sync_crm_fields() {
+	public function sync_lists() {
 
 		$request  = $this->url . '/endpoint/';
 		$response = wp_safe_remote_get( $request, $this->get_params() );
@@ -450,12 +466,69 @@ class WPF_Custom {
 			return $response;
 		}
 
-		$crm_fields = array();
+		$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+		$available_lists = array();
+
+		// Load available lists into $available_lists like 'list_id' => 'list Label'.
+		if ( ! empty( $response->lists ) ) {
+
+			foreach ( $response->lists as $list ) {
+
+				$list_id                    = (int) $list->id;
+				$available_lists[ $list_id ] = sanitize_text_field( $list->label );
+			}
+		}
+
+		wp_fusion()->settings->set( 'available_lists', $available_lists );
+
+		return $available_lists;
+	}
+
+	/**
+	 * Loads all custom fields from CRM and merges with local list.
+	 *
+	 * @since  x.x.x
+	 *
+	 * @return array|WP_Error Either the available fields in the CRM, or a WP_Error.
+	 */
+	public function sync_crm_fields() {
+
+		$standard_fields = array();
+
+		foreach ( $this->get_default_fields() as $field ) {
+			$standard_fields[ $field['crm_field'] ] = array(
+				'crm_label' => $field['crm_label'],
+				'crm_type'  => isset( $field['crm_type'] ) ? $field['crm_type'] : 'text',
+			);
+		}
+
+		$request  = $this->url . '/endpoint/';
+		$response = wp_safe_remote_get( $request, $this->get_params() );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$custom_fields = array();
 
 		$response = json_decode( wp_remote_retrieve_body( $response ) );
 
-		// Load available fields into $crm_fields like 'field_key' => 'Field Label'.
-		asort( $crm_fields );
+		foreach ( $response->fields as $field ) {
+
+			$custom_fields[ $field->id ] = array(
+				'crm_label' => $field->label,
+				'crm_type'  => $field->type,
+			);
+
+		}
+
+		$crm_fields = array(
+			'Standard Fields' => $standard_fields,
+			'Custom Fields'   => $custom_fields,
+		);
+
+		uasort( $crm_fields['Custom Fields'], 'wpf_sort_remote_fields' );
 
 		wp_fusion()->settings->set( 'crm_fields', $crm_fields );
 
@@ -484,6 +557,38 @@ class WPF_Custom {
 
 		// Parse response for contact ID here.
 		return (int) $response->id;
+	}
+
+	/**
+	 * Creates a new tag and returns the ID.
+	 *
+	 * Requires add_tags_api to be enabled in $this->supports.
+	 *
+	 * @since  x.x.x
+	 *
+	 * @param  string       $tag_name The tag name.
+	 * @return int|WP_Error $tag_id   The tag id returned from API or WP Error.
+	 */
+	public function add_tag( $tag_name ) {
+
+		$params = $this->get_params();
+
+		$data = array(
+			'name' => $tag_name,
+		);
+
+		$params['body'] = wp_json_encode( $data );
+
+		$request  = $this->url . '/tags';
+		$response = wp_safe_remote_post( $request, $params );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+		return $response->id;
 	}
 
 

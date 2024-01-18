@@ -3,7 +3,12 @@ Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
 Tested up to: 6.5.0
-Stable tag: 1.1.4
+Stable tag: 1.1.5
+
+= 1.1.5 - 1/18/2024 =
+* Added example methods for `add_tag()` and `sync_lists()`
+* Additional documentation for the `$supports` property
+* Updated data storage for custom fields to include `crm_type`
 
 = 1.1.4 - 11/1/2023 =
 * Updated for PHPStan level 5 compatibility
