@@ -20,6 +20,9 @@ Upload to your /wp-content/plugins/ directory
 
 ## Changelog
 
+### 1.1.6 - 1/22/2024
+* Added example for registering CRM-specific settings in the admin
+
 ### 1.1.5 - 1/18/2024
 * Added example methods for `add_tag()` and `sync_lists()`
 * Additional documentation for the `$supports` property

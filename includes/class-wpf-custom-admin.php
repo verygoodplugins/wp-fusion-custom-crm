@@ -59,6 +59,7 @@ class WPF_Custom_Admin {
 	public function init() {
 
 		add_filter( 'wpf_initialize_options_contact_fields', array( $this, 'add_default_fields' ) );
+		add_filter( 'wpf_configure_settings', array( $this, 'register_settings' ), 10, 2 );
 	}
 
 
@@ -228,6 +229,38 @@ class WPF_Custom_Admin {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Loads CRM specific settings fields
+	 *
+	 * @since x.x.x
+	 *
+	 * @param array $settings The registered settings on the options page.
+	 * @param array $options  The options saved in the database.
+	 */
+	public function register_settings( $settings, $options ) {
+
+		// Add site tracking option
+		$site_tracking = array();
+
+		$site_tracking['site_tracking_header'] = array(
+			'title'   => sprintf( __( '%s Settings', 'wp-fusion' ), $this->name ),
+			'type'    => 'heading',
+			'section' => 'main',
+		);
+
+		$site_tracking['site_tracking'] = array(
+			'title'   => __( 'Site Tracking', 'wp-fusion' ),
+			'desc'    => printf( __( 'Enable %s site tracking</a>.', 'wp-fusion' ), $this->name ),
+			'type'    => 'checkbox',
+			'section' => 'main',
+		);
+
+		$settings = wp_fusion()->settings->insert_setting_after( 'login_meta_sync', $settings, $site_tracking );
+
+		return $settings;
+
 	}
 
 

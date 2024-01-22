@@ -3,7 +3,10 @@ Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
 Tested up to: 6.5.0
-Stable tag: 1.1.5
+Stable tag: 1.1.6
+
+= 1.1.6 - 1/22/2024 =
+* Added example for registering CRM-specific settings in the admin
 
 = 1.1.5 - 1/18/2024 =
 * Added example methods for `add_tag()` and `sync_lists()`
