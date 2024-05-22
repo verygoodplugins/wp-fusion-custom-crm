@@ -2,8 +2,11 @@
 Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
-Tested up to: 6.5.0
-Stable tag: 1.1.6
+Tested up to: 6.6.0
+Stable tag: 1.1.7
+
+= 1.1.7 - 5/22/2024 =
+* Fixed incorrect filter name for `format_post_data()`, was `wpf_format_post_data` instead of `wpf_crm_post_data`
 
 = 1.1.6 - 1/22/2024 =
 * Added example for registering CRM-specific settings in the admin

@@ -123,7 +123,7 @@ class WPF_Custom {
 	public function init() {
 
 		add_filter( 'wpf_format_field_value', array( $this, 'format_field_value' ), 10, 3 );
-		add_filter( 'wpf_format_post_data', array( $this, 'format_post_data' ) );
+		add_filter( 'wpf_crm_post_data', array( $this, 'format_post_data' ) );
 
 		// Allows for linking directly to contact records in the CRM.
 		$this->edit_url = trailingslashit( wp_fusion()->settings->get( 'custom_url' ) ) . 'app/contacts/%d/';
