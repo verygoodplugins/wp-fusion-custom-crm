@@ -423,24 +423,37 @@ class WPF_Custom {
 	 */
 	public function sync_tags() {
 
-		$request  = $this->url . '/endpoint/';
-		$response = wp_safe_remote_get( $request, $this->get_params() );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response = json_decode( wp_remote_retrieve_body( $response ) );
-
 		$available_tags = array();
+		$continue       = true;
+		$page           = 0;
 
-		// Load available tags into $available_tags like 'tag_id' => 'Tag Label'.
-		if ( ! empty( $response->tags ) ) {
+		while ( $continue ) {
 
-			foreach ( $response->tags as $tag ) {
+			// Loop over the custom fields based on the limits and pagination of the API.
 
-				$tag_id                    = (int) $tag->id;
-				$available_tags[ $tag_id ] = sanitize_text_field( $tag->label );
+			$request  = $this->url . '/endpoint/?limit=100&page=' . $page;
+			$response = wp_safe_remote_get( $request, $this->get_params() );
+
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+			// Load available tags into $available_tags like 'tag_id' => 'Tag Label'.
+			if ( ! empty( $response->tags ) ) {
+
+				foreach ( $response->tags as $tag ) {
+
+					$tag_id                    = (int) $tag->id;
+					$available_tags[ $tag_id ] = sanitize_text_field( $tag->label );
+				}
+			}
+
+			if ( count( $response->tags ) < 100 ) {
+				$continue = false;
+			} else {
+				$page++;
 			}
 		}
 
@@ -503,24 +516,37 @@ class WPF_Custom {
 			);
 		}
 
-		$request  = $this->url . '/endpoint/';
-		$response = wp_safe_remote_get( $request, $this->get_params() );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
 		$custom_fields = array();
+		$continue      = true;
+		$page          = 0;
 
-		$response = json_decode( wp_remote_retrieve_body( $response ) );
+		while ( $continue ) {
 
-		foreach ( $response->fields as $field ) {
+			// Loop over the custom fields based on the limits and pagination of the API.
 
-			$custom_fields[ $field->id ] = array(
-				'crm_label' => $field->label,
-				'crm_type'  => $field->type,
-			);
+			$request  = $this->url . '/endpoint/?limit=100&page=' . $page;
+			$response = wp_safe_remote_get( $request, $this->get_params() );
 
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+
+			$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+			foreach ( $response->fields as $field ) {
+
+				$custom_fields[ $field->id ] = array(
+					'crm_label' => $field->label,
+					'crm_type'  => $field->type,
+				);
+
+			}
+
+			if ( count( $response->fields ) < 100 ) {
+				$continue = false;
+			} else {
+				$page++;
+			}
 		}
 
 		$crm_fields = array(

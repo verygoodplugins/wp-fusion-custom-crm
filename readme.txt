@@ -2,8 +2,11 @@
 Contributors: verygoodplugins
 Tags:
 Requires at least: 4.0
-Tested up to: 6.6.0
-Stable tag: 1.1.7
+Tested up to: 6.6.2
+Stable tag: 1.1.8
+
+= 1.1.8 - 8/14/2024 =
+* Updated `sync_tags()` and `sync_cms_fields()` methods to show looping over tags and custom fields with page size / next token
 
 = 1.1.7 - 5/22/2024 =
 * Fixed incorrect filter name for `format_post_data()`, was `wpf_format_post_data` instead of `wpf_crm_post_data`

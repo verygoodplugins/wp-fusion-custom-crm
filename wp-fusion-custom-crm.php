@@ -4,7 +4,7 @@
  * Plugin Name: WP Fusion - Custom CRM
  * Description: Boostrap for connecting WP Fusion to a custom CRM
  * Plugin URI: https://verygoodplugins.com/
- * Version: 1.1.7
+ * Version: 1.1.8
  * Author: Very Good Plugins
  * Author URI: https://verygoodplugins.com/
 */
